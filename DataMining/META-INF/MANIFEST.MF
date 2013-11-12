@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: DataMining
+Bundle-SymbolicName: DataMining
+Bundle-Version: 1.0.0.qualifier
+Bundle-ClassPath: DataMining.jar,
+ ryan/workspace/DataMining/bin/kd.jar
+Export-Package: .,
+ edu.georgiasouthern.Datamining,
+ edu.georgiasouthern.common,
+ edu.georgiasouthern.fileio,
+ edu.georgiasouthern.gui,
+ edu.georgiasouthern.interpolation,
+ edu.georgiasouthern.validation,
+ edu.georgiasouthern.visualization
