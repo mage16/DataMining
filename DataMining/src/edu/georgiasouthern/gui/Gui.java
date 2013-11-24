@@ -1,5 +1,5 @@
 package edu.georgiasouthern.gui;
-
+   
 import java.applet.Applet;
 
 import java.awt.TextField;
@@ -190,7 +190,7 @@ public class Gui extends Applet {
 					dialog2.getContentPane().add(jb);
 					dialog2.setVisible(true);
 				}
-				else if(algorithmList.getSelectedIndex() == 2 || algorithmList.getSelectedIndex() == 4 || algorithmList.getSelectedIndex() == 5) {
+				else if(algorithmList.getSelectedIndex() == 4 || algorithmList.getSelectedIndex() == 5) {
 					dialog2.getContentPane().add(new JLabel("Algorithm not implemented yet."));
 					JButton jb = new JButton("OK");
 					jb.addActionListener(new ActionListener() {
@@ -396,7 +396,7 @@ public class Gui extends Applet {
 		} else
 			return null;
 	}
-
+ 
 	private void OpenFileOptions() {
 		final JDialog dialog = new JDialog(
 				SwingUtilities.windowForComponent(this));
@@ -493,6 +493,12 @@ public void runAlgorithm(JDialog dialog2, double minimumSupportThreshold){
 		}
 		else if(algorithms[selectedAlgorithm].equals("Eclat")){
 			// run the Eclat algorithm
+			AlgoEclat EClat = new AlgoEclat();
+			TransactionDatabase database = new TransactionDatabase();
+			database.loadTransactionData(dataSet);
+			EClat.runAlgorithm(output, database, minsup);
+			frequentItemsets = EClat.getFrequentItemsets();
+			ldsTable.setModel(TableLds());
 		}
 	}
 	catch(IOException e) {

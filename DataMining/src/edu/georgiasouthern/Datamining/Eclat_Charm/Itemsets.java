@@ -1,23 +1,23 @@
-package edu.georgiasouthern.Datamining;
-
-
+package edu.georgiasouthern.Datamining.Eclat_Charm;
+   
 import java.util.ArrayList;
 import java.util.List;
-
+  
 /**
- * This class represents a set of itemsets, where an itemset is an array of integers 
- * with an associated support count. Itemsets are ordered by size. For
+ * This class represents a set of itemsets, where itemsets are sets of integers with tids as a 
+ * list of integers. Itemsets are ordered by size. For
  * example, level 1 means itemsets of size 1 (that contains 1 item).
 * 
+* @see Itemset
  */
 public class Itemsets {
 	/** We store the itemsets in a list named "levels".
-	 Position i in "levels" contains the list of itemsets of size i */
+	  Position i in "levels" contains the list of itemsets of size i */
 	private final List<List<Itemset>> levels = new ArrayList<List<Itemset>>(); 
-	/** the total number of itemsets **/
+	/** the total number of itemsets */
 	private int itemsetsCount = 0;
 	/** a name that we give to these itemsets (e.g. "frequent itemsets") */
-	private final String name;
+	private String name;
 
 	/**
 	 * Constructor
@@ -86,5 +86,13 @@ public class Itemsets {
 	 */
 	public int getItemsetsCount() {
 		return itemsetsCount;
+	}
+
+	/**
+	 * Change the name of this set of itemsets.
+	 * @param name a new name 
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
 }
