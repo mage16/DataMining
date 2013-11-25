@@ -1,8 +1,11 @@
 package edu.georgiasouthern.Datamining;
  
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
  
+
 import edu.georgiasouthern.Datamining.Itemset;
 import edu.georgiasouthern.Datamining.Itemsets;
 import edu.georgiasouthern.Datamining.MemoryLogger;
@@ -580,7 +584,21 @@ public class AlgoFPGrowth {
 			patterns.addItemset(itemsetObj, itemsetObj.size());
 		}
 	}
-
+	public void SaveStats() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		PrintWriter writer = new PrintWriter("APRIORIStats", "UTF-8");
+		writer.println("=============  FP-GROWTH - STATS =============");
+long temps = endTime - startTimestamp;
+writer.println(" Transactions count from database : " + transactionCount);
+writer.println(" Max memory usage: " + memoryLogger.getMaxMemory() + " mb \n");
+writer.println(" Frequent itemsets count : " + itemsetCount); 
+writer.println(" Total time ~ " + temps + " ms");
+writer.println("===================================================");
+		
+		
+		writer.close();
+	
+	}
 	/**
 	 * Print statistics about the algorithm execution to System.out.
 	 */

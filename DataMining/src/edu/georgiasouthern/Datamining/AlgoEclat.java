@@ -2,8 +2,11 @@ package edu.georgiasouthern.Datamining;
  
   
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -305,11 +308,27 @@ public class AlgoEclat {
 			}
 		});
 	}
-
+	public void SaveStats() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		PrintWriter writer = new PrintWriter("APRIORIStats", "UTF-8");
+		writer.println("=============  ECLAT - STATS =============");
+		long temps = endTime - startTimestamp;
+		writer.println(" Transactions count from database : "
+				+ database.size());
+		writer.println(" Frequent itemsets count : "
+				+ itemsetCount);
+		writer.println(" Total time ~ " + temps + " ms");
+		writer.println("===================================================");
+		
+		writer.close();
+	
+	}
 	/**
 	 * Print statistics about the algorithm execution to System.out.
+	 * @throws UnsupportedEncodingException 
+	 * @throws FileNotFoundException 
 	 */
-	public void printStats() {
+	public void printStats() throws FileNotFoundException, UnsupportedEncodingException {
 		System.out.println("=============  ECLAT - STATS =============");
 		long temps = endTime - startTimestamp;
 		System.out.println(" Transactions count from database : "
@@ -319,6 +338,7 @@ public class AlgoEclat {
 		System.out.println(" Total time ~ " + temps + " ms");
 		System.out
 				.println("===================================================");
+		SaveStats();
 	} 
 
 	/**

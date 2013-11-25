@@ -1,9 +1,12 @@
 package edu.georgiasouthern.Datamining;
 //import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 //import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -610,11 +613,26 @@ private int sameAs(Itemset itemset, String [] candidate, int posRemoved) {
 			patterns.addItemset(itemset, 1);
 		}
 	}
+	public void SaveStats() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		PrintWriter writer = new PrintWriter("APRIORIStats", "UTF-8");
+		writer.println("=============  APRIORI - STATS =============");
+		writer.println(" Candidates count : " + totalCandidateCount);
+		writer.println(" The algorithm stopped at size " + (k - 1)
+				+ ", because there is no candidate");
+		writer.println(" Frequent itemsets count : " + itemsetCount);
+		writer.println(" Maximum memory usage : " + MemoryLogger.getInstance().getMaxMemory() + " mb");
+		writer.println(" Total time ~ " + (endTimestamp - startTimestamp) + " ms");
+		writer.println("===================================================");
+		writer.close();
 	
+	}
 	/**
 	 * Print statistics about the algorithm execution to System.out.
+	 * @throws UnsupportedEncodingException 
+	 * @throws FileNotFoundException 
 	 */
-	public void printStats() {
+	public void printStats() throws FileNotFoundException, UnsupportedEncodingException {
 		System.out.println("=============  APRIORI - STATS =============");
 		System.out.println(" Candidates count : " + totalCandidateCount);
 		System.out.println(" The algorithm stopped at size " + (k - 1)
@@ -623,6 +641,7 @@ private int sameAs(Itemset itemset, String [] candidate, int posRemoved) {
 		System.out.println(" Maximum memory usage : " + MemoryLogger.getInstance().getMaxMemory() + " mb");
 		System.out.println(" Total time ~ " + (endTimestamp - startTimestamp) + " ms");
 		System.out.println("===================================================");
+		SaveStats();
 	}
 	
 	public ArrayList<String> getFrequentItemsets() {
