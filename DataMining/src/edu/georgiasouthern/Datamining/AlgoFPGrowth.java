@@ -586,7 +586,7 @@ public class AlgoFPGrowth {
 	}
 	public void SaveStats() throws FileNotFoundException, UnsupportedEncodingException
 	{
-		PrintWriter writer = new PrintWriter("APRIORIStats", "UTF-8");
+		PrintWriter writer = new PrintWriter(" FP-GROWTHStats", "UTF-8");
 		writer.println("=============  FP-GROWTH - STATS =============");
 long temps = endTime - startTimestamp;
 writer.println(" Transactions count from database : " + transactionCount);

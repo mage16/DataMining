@@ -310,7 +310,7 @@ public class AlgoEclat {
 	}
 	public void SaveStats() throws FileNotFoundException, UnsupportedEncodingException
 	{
-		PrintWriter writer = new PrintWriter("APRIORIStats", "UTF-8");
+		PrintWriter writer = new PrintWriter("ECLATStats", "UTF-8");
 		writer.println("=============  ECLAT - STATS =============");
 		long temps = endTime - startTimestamp;
 		writer.println(" Transactions count from database : "
