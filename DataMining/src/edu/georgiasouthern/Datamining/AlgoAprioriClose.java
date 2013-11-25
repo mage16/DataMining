@@ -707,8 +707,10 @@ private int sameAs(Itemset itemset, String [] candidate, int posRemoved) {
 		}
 	/**
 	 * Print statistics about the algorithm execution to System.out.
+	 * @throws UnsupportedEncodingException 
+	 * @throws FileNotFoundException 
 	 */
-	public void printStats() {
+	public void printStats() throws FileNotFoundException, UnsupportedEncodingException {
 		System.out.println("=============  APRIORI Close - STATS =============");
 		System.out.println(" Candidates count : " + totalCandidateCount);
 		System.out.println(" The algorithm stopped at size " + (k - 1)

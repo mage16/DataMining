@@ -601,8 +601,10 @@ writer.println("===================================================");
 	}
 	/**
 	 * Print statistics about the algorithm execution to System.out.
+	 * @throws UnsupportedEncodingException 
+	 * @throws FileNotFoundException 
 	 */
-	public void printStats() {
+	public void printStats() throws FileNotFoundException, UnsupportedEncodingException {
 		System.out
 				.println("=============  FP-GROWTH - STATS =============");
 		long temps = endTime - startTimestamp;
@@ -612,6 +614,7 @@ writer.println("===================================================");
 		System.out.println(" Total time ~ " + temps + " ms");
 		System.out
 				.println("===================================================");
+		SaveStats();
 	}
 
 	/**
