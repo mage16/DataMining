@@ -691,10 +691,11 @@ private int sameAs(Itemset itemset, String [] candidate, int posRemoved) {
 			patterns.addItemset(itemset, 1);
 		}
 	}
+	 
 	 public void SaveStats() throws FileNotFoundException, UnsupportedEncodingException
 		{
 			PrintWriter writer = new PrintWriter("APRIORICloseStats", "UTF-8");
-			writer.println("=============  APRIORI Close - STATS =============");
+			writer.println("=============  APRIORI - STATS =============");
 			writer.println(" Candidates count : " + totalCandidateCount);
 			writer.println(" The algorithm stopped at size " + (k - 1)
 					+ ", because there is no candidate");
@@ -705,13 +706,12 @@ private int sameAs(Itemset itemset, String [] candidate, int posRemoved) {
 			writer.close();
 		
 		}
+	
 	/**
 	 * Print statistics about the algorithm execution to System.out.
-	 * @throws UnsupportedEncodingException 
-	 * @throws FileNotFoundException 
 	 */
 	public void printStats() throws FileNotFoundException, UnsupportedEncodingException {
-		System.out.println("=============  APRIORI Close - STATS =============");
+		System.out.println("=============  APRIORI CLOSE - STATS =============");
 		System.out.println(" Candidates count : " + totalCandidateCount);
 		System.out.println(" The algorithm stopped at size " + (k - 1)
 				+ ", because there is no candidate");
@@ -720,6 +720,24 @@ private int sameAs(Itemset itemset, String [] candidate, int posRemoved) {
 		System.out.println(" Total time ~ " + (endTimestamp - startTimestamp) + " ms");
 		System.out.println("===================================================");
 		SaveStats();
+	}
+	
+	/**
+	 * Get the statistics as a string.
+	 */
+	public ArrayList<String> getStats() {
+		ArrayList<String> stats = new ArrayList<String>();
+		
+		stats.add("=============  APRIORI CLOSE - STATS =============");
+		stats.add(" Candidates count : " + totalCandidateCount);
+		stats.add(" The algorithm stopped at size " + (k - 1)
+				+ ", because there is no candidate");
+		stats.add(" Frequent closed itemsets count : " + itemsetCount);
+		stats.add(" Maximum memory usage : " + MemoryLogger.getInstance().getMaxMemory() + " mb");
+		stats.add(" Total time ~ " + (endTimestamp - startTimestamp) + " ms");
+		stats.add("===================================================");
+		
+		return stats;
 	}
 	
 	public ArrayList<String> getFrequentItemsets() {

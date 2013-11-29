@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
  
 
+
 import edu.georgiasouthern.Datamining.Itemset;
 import edu.georgiasouthern.Datamining.Itemsets;
 import edu.georgiasouthern.Datamining.MemoryLogger;
@@ -584,25 +585,24 @@ public class AlgoFPGrowth {
 			patterns.addItemset(itemsetObj, itemsetObj.size());
 		}
 	}
+	
 	public void SaveStats() throws FileNotFoundException, UnsupportedEncodingException
 	{
-		PrintWriter writer = new PrintWriter(" FP-GROWTHStats", "UTF-8");
+		PrintWriter writer = new PrintWriter("FPGrowthStats", "UTF-8");
 		writer.println("=============  FP-GROWTH - STATS =============");
-long temps = endTime - startTimestamp;
-writer.println(" Transactions count from database : " + transactionCount);
-writer.println(" Max memory usage: " + memoryLogger.getMaxMemory() + " mb \n");
-writer.println(" Frequent itemsets count : " + itemsetCount); 
-writer.println(" Total time ~ " + temps + " ms");
-writer.println("===================================================");
-		
-		
+		long temps = endTime - startTimestamp;
+		writer.println(" Transactions count from database : "
+				+ database.size());
+		writer.println(" Max memory usage: " + memoryLogger.getMaxMemory() + " mb \n");
+		writer.println(" Frequent closed itemsets count : " + itemsetCount);
+		writer.println(" Total time ~ " + temps + " ms");
+		writer.println("===================================================");
 		writer.close();
 	
 	}
+
 	/**
 	 * Print statistics about the algorithm execution to System.out.
-	 * @throws UnsupportedEncodingException 
-	 * @throws FileNotFoundException 
 	 */
 	public void printStats() throws FileNotFoundException, UnsupportedEncodingException {
 		System.out
@@ -615,6 +615,23 @@ writer.println("===================================================");
 		System.out
 				.println("===================================================");
 		SaveStats();
+	}
+	
+	/**
+	 * Get the statistics as a string.
+	 */
+	public ArrayList<String> getStats() {
+		ArrayList<String> stats = new ArrayList<String>();
+		
+		stats.add("=============  FP-GROWTH - STATS =============");
+		long temps = endTime - startTimestamp;
+		stats.add(" Transactions count from database : " + transactionCount);
+		stats.add(" Max memory usage: " + memoryLogger.getMaxMemory() + " mb \n");
+		stats.add(" Frequent itemsets count : " + itemsetCount); 
+		stats.add(" Total time ~ " + temps + " ms");
+		stats.add("===================================================");
+		
+		return stats;
 	}
 
 	/**

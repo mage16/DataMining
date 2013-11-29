@@ -1,118 +1,135 @@
 package edu.georgiasouthern.Datamining;
- 
-  
+
+
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.ArrayList;
 
+import edu.georgiasouthern.Datamining.TriangularMatrix;
 import edu.georgiasouthern.Datamining.TransactionDatabase;
 import edu.georgiasouthern.Datamining.Eclat_Charm.Itemset;
 import edu.georgiasouthern.Datamining.Eclat_Charm.Itemsets;
- 
 
 /**
- * This is an implementation of the ECLAT algorithm as proposed by ZAKI (2000).
+ * This is an implementation of the CHARM algorithm that was proposed by MOHAMED
+ * ZAKI. The paper describing charm:
  * <br/><br/>
  * 
- * See this article for details about ECLAT:
- * <br/><br/>
- * 
- * Zaki, M. J. (2000). Scalable algorithms for association mining. Knowledge and Data Engineering, IEEE Transactions on, 12(3), 372-390.
- * <br/><br/>
+ * Zaki, M. J., & Hsiao, C. J. (2002, April). CHARM: An Efficient Algorithm for Closed Itemset Mining. In SDM (Vol. 2, pp. 457-473).
  * 
  * This implementation may not be fully optimized. In particular, Zaki proposed
- * various extensions that I have not implemented (e.g. diffsets).
- * <br/><br/>
+ * various extensions that I have not implemented (for example diffsets).<br/><br/>
  * 
- * This  version  saves the result to a file
- * or keep it into memory if no output path is provided
- * by the user to the runAlgorithm method().
+ * This version saves the result to a file or keep it into memory if no output
+ * path is provided by the user to the runAlgorithm() method.<br/><br/>
  * 
-
+ * @see TriangularMatrix
  * @see TransactionDatabase
  * @see Itemset
  * @see Itemsets
+ * @see HashTable
  * @see ITSearchTree
  */
-public class AlgoEclat {
+public class AlgoCharm {
 
 	// parameters
-	private double minsupRelative;  // relative minimum support
+	private double minsupRelative; // relative minimum support
 	private TransactionDatabase database; // the transaction database
 
 	// for statistics
 	private long startTimestamp; // start time of the last execution
-	private long endTime; // end  time of the last execution
-	
-	// results
-	// The  patterns that are found 
+	private long endTimestamp; // end time of the last execution
+
+	// The patterns that are found
 	// (if the user want to keep them into memory)
 	protected Itemsets frequentItemsets;
 	BufferedWriter writer = null; // object to write the output file
 	private int itemsetCount; // the number of patterns found
+	
 	ArrayList<String> frequentItems = new ArrayList<String>();
 	
 	private MemoryLogger memoryLogger = null;
 
+
+	// for optimization with a hashTable
+	private HashTable hash;
+
 	/**
 	 * Default constructor
 	 */
-	public AlgoEclat() {
-		
+	public AlgoCharm() {
+
 	}
 
-
 	/**
-	 * Run the algorithm.
-	 * @param database a transaction database
-	 * @param output an output file path for writing the result or if null the result is saved into memory and returned
-	 * @param minsupp the minimum support
-	 * @return the result
-	 * @throws IOException exception if error while writing the file.
+	 * Run the Charm algorithm.
+	 * 
+	 * @param output the filepath for saving the result
+	 * @param database a transaction database taken as input
+	 * @param minsuppAbsolute the ABSOLUTE minimum support (double)
+	 * @param hashTableSize  the size of the hashtable to be used by charm
+	 * @return the frequent closed itemsets found by charm
+	 * @throws IOException if an error occurs while writting to file.
 	 */
-	public Itemsets runAlgorithm(String output, TransactionDatabase database, double minsupp) throws IOException {
+	public Itemsets runAlgorithm(String output, TransactionDatabase database,
+			int hashTableSize, double minsuppAbsolute) throws IOException {
+
 		//initialize tool to record memory usage
 		memoryLogger = new MemoryLogger();
 		memoryLogger.checkMemory();
+				
+		this.database = database;
 		
+		// create hash table to store candidate itemsets
+		this.hash = new HashTable(hashTableSize);
+		
+		// convert from an absolute minimum support to relative minimum support
+		// by multiplying with the database size
+		this.minsupRelative = minsuppAbsolute;
+
+		// start the algorithm!
+		return run(output);
+	}
+
+	/**
+	 * Run the algorithm.
+	 * @param output an output file path for writing the result or if null the result is saved into memory and returned
+	 * @return the result
+	 * @throws IOException exception if error while writing the file.
+	 */
+	private Itemsets run(String output) throws IOException {
+
 		// if the user want to keep the result into memory
-		if(output == null){
+		if (output == null) {
 			writer = null;
-			frequentItemsets =  new Itemsets("FREQUENT ITEMSETS");
-	    }else{ // if the user want to save the result to a file
-	    	frequentItemsets = null;
-			writer = new BufferedWriter(new FileWriter(output)); 
+			frequentItemsets = new Itemsets("FREQUENT ITEMSETS");
+		} else { // if the user want to save the result to a file
+			frequentItemsets = null;
+			writer = new BufferedWriter(new FileWriter(output));
 		}
 
 		// reset the number of itemset found to 0
-		itemsetCount =0;
-
-		this.database = database;
+		itemsetCount = 0;
 		
-		// record the start time
+		// record the start timestamp
 		startTimestamp = System.currentTimeMillis();
-		
-		// convert from an absolute minsup to a relative minsup by multiplying
-		// by the database size
-		//this.minsupRelative = (int) Math.ceil(minsupp * database.size());
-		this.minsupRelative = minsupp;
 
 		// A set that will contains all transactions IDs
 		Set<Integer> allTIDS = new HashSet<Integer>();
 
 		// (1) First database pass : calculate tidsets of each item.
-		
 		String maxItemId = "";
 		// This map will contain the tidset of each item
 		// Key: item   Value :  tidset
@@ -120,7 +137,7 @@ public class AlgoEclat {
 		// for each transaction
 		for (int i = 0; i < database.size(); i++) {
 			// add the transaction id to the set of all transaction ids
-			allTIDS.add(i);
+			allTIDS.add(i); 
 			// for each item in that transaction
 			for (String item : database.getTransactions().get(i)) {
 				// add the transaction ID to the tidset of that item
@@ -138,8 +155,7 @@ public class AlgoEclat {
 			}
 		}
 
-
-		// (2) create ITSearchTree with root node
+		// (2) create ITSearchTree with the empty set as root node
 		ITSearchTree tree = new ITSearchTree();
 		// add the empty set
 		ITNode root = new ITNode(new Itemset());
@@ -147,11 +163,13 @@ public class AlgoEclat {
 		root.setTidset(allTIDS);
 		tree.setRoot(root);
 
-		// (3) create childs of the root node.
+		// (3) create a child node of the root node for each frequent item.
+		
+		// For each item
 		for (Entry<String, Set<Integer>> entry : mapItemCount.entrySet()) {
-			// we only add nodes for items that are frequents
+			//if the item is frequent
 			if (entry.getValue().size() >= minsupRelative) {
-				// create a new node for that item
+				// create a  new node for that item
 				Itemset itemset = new Itemset();
 				itemset.addItem(entry.getKey());
 				ITNode newNode = new ITNode(itemset);
@@ -165,9 +183,9 @@ public class AlgoEclat {
 		}
 
 		// save root node
-		save(root);
+		// save(root);
 
-		// for optimization
+		// for optimization, sort the child of the root according to the support
 		sortChildren(root);
 
 		// while there is at least one child node of the root
@@ -181,42 +199,91 @@ public class AlgoEclat {
 			// delete it
 			delete(child);
 		}
-		
+
 		// close the output file if the result was saved to a file
-		if(writer != null){
+		if (writer != null) {
 			writer.close();
 		}
-		
+
 		// record the end time for statistics
-		endTime = System.currentTimeMillis();
-		
+		endTimestamp = System.currentTimeMillis();
+
 		// check the memory usage
 		memoryLogger.checkMemory();
-
-		return frequentItemsets; // Return all frequent itemsets found!
+		
+		// Return all frequent closed itemsets found.
+		return frequentItemsets; 
 	}
 
 	/**
-	 * This is the "extend" method as described in the paper to extend
-	 * a given node.
+	 * This is the "extend" method as described in the paper.
 	 * @param currNode the current node.
 	 * @throws IOException exception if error while writing to file.
 	 */
 	private void extend(ITNode currNode) throws IOException {
-		// loop over the brothers
-		for (ITNode brother : currNode.getParent().getChildNodes()) {
+		// loop over the brothers of that node
+		int i = 0;
+		while (i < currNode.getParent().getChildNodes().size()) {
+			// get the brother i
+			ITNode brother = currNode.getParent().getChildNodes().get(i);
 			// if the brother is not the current node
 			if (brother != currNode) {
-				// try to generate a candidate by doing the union
-				// of the itemset of the current node and the brother
-				ITNode candidate = getCandidate(currNode, brother);
-				// if a candidate was generated (with enough support)
-				if (candidate != null) {
-					// add the candidate as a child of the current node
-					currNode.getChildNodes().add(candidate);
-					candidate.setParent(currNode);
+
+				// Property 1
+				// If the tidset of the current node is the same as the one
+				// of its brother
+				if (currNode.getTidset().equals(brother.getTidset())) {
+					// we can replace the current node itemset in the current node
+					// and the subtree by the union of the brother itemset
+					// and the current node itemset
+					replaceInSubtree(currNode, brother.getItemset());
+					// then we delete the brother
+					delete(brother);
 				}
-			}
+				// Property 2
+				// If the brother tidset contains the tidset of the current node
+				else if (brother.getTidset().containsAll(currNode.getTidset())) {
+					// Same as previous if condition except that we
+					// do not delete the brother.
+					replaceInSubtree(currNode, brother.getItemset());
+					i++;
+				}
+				// Property 3
+				// If the tidset of the current node contains the tidset of the
+				// brother
+				else if (currNode.getTidset().containsAll(brother.getTidset())) {
+					// Generate a candidate by performing
+					// the union of the itemsets of the current node and its brother
+					ITNode candidate = getCandidate(currNode, brother);
+					// delete the brother
+					delete(brother);
+					// if a candidate was obtained
+					if (candidate != null) {
+						// add the candidate as child node of the current node
+						currNode.getChildNodes().add(candidate);
+						candidate.setParent(currNode);
+					}
+				}
+				// Property 4
+				// if the tidset of the current node is not equal to the tidset
+				// of its brother
+				else if (!currNode.getTidset().equals(brother.getTidset())) {
+					// Generate a candidate by performing
+					// the union of the itemsets of the current node and its brother
+					ITNode candidate = getCandidate(currNode, brother);
+					// if a candidate was obtained
+					if (candidate != null) {
+						// add the candidate as child node of the current node
+						currNode.getChildNodes().add(candidate);
+						candidate.setParent(currNode);
+					}
+					i++; // go to next node
+				} else {
+					i++; // go to next node
+				}
+			} else {
+				i++;  // go to next node
+			} 
 		}
 
 		// for optimization, sort the child of the root according to the support
@@ -228,8 +295,25 @@ public class AlgoEclat {
 			ITNode child = currNode.getChildNodes().get(0);
 			extend(child);  // extend it (charm is a depth-first search algorithm)
 			save(child); // save the node
-			delete(child); // then delete it
+			delete(child); // then delte it
 		}
+	}
+
+	/**
+	 * Replace the itemset of a current node by another itemset in 
+	 * a subtree (including the current node).
+	 * @param currNode the current node.
+	 * @param itemset  the itemset
+	 */
+	private void replaceInSubtree(ITNode currNode, Itemset itemset) {
+		// make the union
+		Itemset union = new Itemset();
+		union.getItems().addAll(currNode.getItemset().getItems());
+		union.getItems().addAll(itemset.getItems());
+		// replace for this node
+		currNode.setItemset(union);
+		// recursively perform replacement for childs and their childs, etc.
+		currNode.replaceInChildren(union);
 	}
 
 	/**
@@ -269,7 +353,7 @@ public class AlgoEclat {
 		// otherwise return null because the candidate did not have enough support
 		return null;
 	}
-	
+
 	/**
 	 * Delete a child from its parent node.
 	 * @param child the child node
@@ -284,20 +368,29 @@ public class AlgoEclat {
 	 * @throws IOException
 	 */
 	private void save(ITNode node) throws IOException {
-		// increase the itemset count
-		itemsetCount++;
-		// if the result should be saved to memory
-		if(writer == null){
-			// add it to the set of frequent itemsets
-			Itemset itemset = node.getItemset();
-			itemset.setTidset(node.getTidset());
-			frequentItemsets.addItemset(itemset, itemset.size());
-		}else{
-			// if the result should be saved to a file
-			// write it to the output file
-			writer.write(node.getItemset().toString() + " #SUP: " + node.getTidset().size());
-			writer.newLine();
-			frequentItems.add(node.getItemset().toString() + " #SUP: " + node.getTidset().size());
+		// get the itemset of that node and set its tidset
+		Itemset itemset = node.getItemset();
+		itemset.setTidset(node.getTidset());
+
+		// if it has no superset already in the hash table
+		// it is a frequent closed itemset
+		if (!hash.containsSupersetOf(itemset)) {
+			// increase the itemset count
+			itemsetCount++;
+			// if the result should be saved to memory
+			if (writer == null) {
+				// save it to memory
+				frequentItemsets.addItemset(itemset, itemset.size());
+			} else {
+				// otherwise if the result should be saved to a file,
+				// then write it to the output file
+				writer.write(node.getItemset().toString() + " #SUP: "
+						+ node.getTidset().size());
+				writer.newLine();
+				frequentItems.add(node.getItemset().toString() + " #SUP: " + node.getTidset().size());
+			}
+			// add the itemset to the hashtable
+			hash.put(itemset);
 		}
 	}
 
@@ -319,9 +412,9 @@ public class AlgoEclat {
 	
 	public void SaveStats() throws FileNotFoundException, UnsupportedEncodingException
 	{
-		PrintWriter writer = new PrintWriter("ECLATStats", "UTF-8");
-		writer.println("=============  ECLAT - STATS =============");
-		long temps = endTime - startTimestamp;
+		PrintWriter writer = new PrintWriter("CHARMStats", "UTF-8");
+		writer.println("=============  CHARM - STATS =============");
+		long temps = endTimestamp - startTimestamp;
 		writer.println(" Transactions count from database : "
 				+ database.size());
 		writer.println(" Max memory usage: " + memoryLogger.getMaxMemory() + " mb \n");
@@ -336,12 +429,11 @@ public class AlgoEclat {
 	 * Print statistics about the algorithm execution to System.out.
 	 */
 	public void printStats() throws FileNotFoundException, UnsupportedEncodingException {
-		System.out.println("=============  ECLAT - STATS =============");
-		long temps = endTime - startTimestamp;
+		System.out.println("=============  CHARM - STATS =============");
+		long temps = endTimestamp - startTimestamp;
 		System.out.println(" Transactions count from database : "
 				+ database.size());
-		System.out.println(" Frequent itemsets count : "
-				+ itemsetCount);
+		System.out.println(" Frequent closed itemsets count : " + itemsetCount);
 		System.out.println(" Total time ~ " + temps + " ms");
 		System.out
 				.println("===================================================");
@@ -354,13 +446,12 @@ public class AlgoEclat {
 	public ArrayList<String> getStats() {
 		ArrayList<String> stats = new ArrayList<String>();
 		
-		stats.add("=============  ECLAT - STATS =============");
-		long temps = endTime - startTimestamp;
+		stats.add("=============  CHARM - STATS =============");
+		long temps = endTimestamp - startTimestamp;
 		stats.add(" Transactions count from database : "
 				+ database.size());
 		stats.add(" Max memory usage: " + memoryLogger.getMaxMemory() + " mb \n");
-		stats.add(" Frequent itemsets count : "
-				+ itemsetCount);
+		stats.add(" Frequent closed itemsets count : " + itemsetCount);
 		stats.add(" Total time ~ " + temps + " ms");
 		stats.add("===================================================");
 		
@@ -368,10 +459,10 @@ public class AlgoEclat {
 	}
 
 	/**
-	 * Get the set of frequent itemsets.
-	 * @return the frequent itemsets (Itemsets).
+	 * Get the set of frequent closed itemsets found by Charm.
+	 * @return the set of frequent closed itemsets.
 	 */
-	public Itemsets getItemsets() {
+	public Itemsets getClosedItemsets() {
 		return frequentItemsets;
 	}
 	

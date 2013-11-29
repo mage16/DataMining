@@ -613,24 +613,24 @@ private int sameAs(Itemset itemset, String [] candidate, int posRemoved) {
 			patterns.addItemset(itemset, 1);
 		}
 	}
-	public void SaveStats() throws FileNotFoundException, UnsupportedEncodingException
-	{
-		PrintWriter writer = new PrintWriter("APRIORIStats", "UTF-8");
-		writer.println("=============  APRIORI - STATS =============");
-		writer.println(" Candidates count : " + totalCandidateCount);
-		writer.println(" The algorithm stopped at size " + (k - 1)
-				+ ", because there is no candidate");
-		writer.println(" Frequent itemsets count : " + itemsetCount);
-		writer.println(" Maximum memory usage : " + MemoryLogger.getInstance().getMaxMemory() + " mb");
-		writer.println(" Total time ~ " + (endTimestamp - startTimestamp) + " ms");
-		writer.println("===================================================");
-		writer.close();
+	 
+	 public void SaveStats() throws FileNotFoundException, UnsupportedEncodingException
+		{
+			PrintWriter writer = new PrintWriter("APRIORIStats", "UTF-8");
+			writer.println("=============  APRIORI - STATS =============");
+			writer.println(" Candidates count : " + totalCandidateCount);
+			writer.println(" The algorithm stopped at size " + (k - 1)
+					+ ", because there is no candidate");
+			writer.println(" Frequent itemsets count : " + itemsetCount);
+			writer.println(" Maximum memory usage : " + MemoryLogger.getInstance().getMaxMemory() + " mb");
+			writer.println(" Total time ~ " + (endTimestamp - startTimestamp) + " ms");
+			writer.println("===================================================");
+			writer.close();
+		
+		}
 	
-	}
 	/**
 	 * Print statistics about the algorithm execution to System.out.
-	 * @throws UnsupportedEncodingException 
-	 * @throws FileNotFoundException 
 	 */
 	public void printStats() throws FileNotFoundException, UnsupportedEncodingException {
 		System.out.println("=============  APRIORI - STATS =============");
@@ -642,6 +642,24 @@ private int sameAs(Itemset itemset, String [] candidate, int posRemoved) {
 		System.out.println(" Total time ~ " + (endTimestamp - startTimestamp) + " ms");
 		System.out.println("===================================================");
 		SaveStats();
+	}
+	
+	/**
+	 * Get the statistics as a string.
+	 */
+	public ArrayList<String> getStats() {
+		ArrayList<String> stats = new ArrayList<String>();
+		
+		stats.add("=============  APRIORI - STATS =============");
+		stats.add(" Candidates count : " + totalCandidateCount);
+		stats.add(" The algorithm stopped at size " + (k - 1)
+				+ ", because there is no candidate");
+		stats.add(" Frequent itemsets count : " + itemsetCount);
+		stats.add(" Maximum memory usage : " + MemoryLogger.getInstance().getMaxMemory() + " mb");
+		stats.add(" Total time ~ " + (endTimestamp - startTimestamp) + " ms");
+		stats.add("===================================================");
+		
+		return stats;
 	}
 	
 	public ArrayList<String> getFrequentItemsets() {
