@@ -67,6 +67,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 
 import edu.georgiasouthern.Datamining.*;
+
 public class Gui extends Applet {
 	public Gui() {
 	}
@@ -81,19 +82,21 @@ public class Gui extends Applet {
 	JTextPane txtLocationDataSet;
 	JTable dsTable;
 	JTable ldsTable;
+	JTable statsTable;
 	JLabel lblErrors;
 	private JTextField frequentItemsetFileName;
 	String[] algorithms = {"Apriori", "FP-Growth", "Eclat", "A-Close", "Closet+", "CHARM"};
 	JComboBox algorithmList;
 	ArrayList<String> frequentItemsets = null;
+	ArrayList<String> statistics = null;
 	
 	public void init() {
 
-		setSize(500, 500);
+		setSize(900, 500);
 		setLayout(null);
 
 		JPanel panel = new JPanel();
-		panel.setBounds(0, 0, 500, 95);
+		panel.setBounds(0, 0, 900, 95);
 		add(panel);
 		panel.setLayout(null);
 
@@ -190,7 +193,7 @@ public class Gui extends Applet {
 					dialog2.getContentPane().add(jb);
 					dialog2.setVisible(true);
 				}
-				else if(algorithmList.getSelectedIndex() == 4 || algorithmList.getSelectedIndex() == 5) {
+				else if(algorithmList.getSelectedIndex() == 4) {
 					dialog2.getContentPane().add(new JLabel("Algorithm not implemented yet."));
 					JButton jb = new JButton("OK");
 					jb.addActionListener(new ActionListener() {
@@ -248,37 +251,48 @@ public class Gui extends Applet {
 	 
 		panel.add(btnFrequentItemsets);
 		
-		
-		
-				JPanel panel_1 = new JPanel();
-				panel_1.setBounds(0, 96, 495, 400);
-				add(panel_1);
-				panel_1.setLayout(null);
+		JPanel panel_1 = new JPanel();
+		panel_1.setBounds(0, 96, 900, 400);
+		add(panel_1);
+		panel_1.setLayout(null);
 				
-						dsTable = new JTable(TableDs());
-						dsTable.setBounds(-3, -2, 0, 393);
-						panel_1.add(dsTable);
+		dsTable = new JTable(TableDs());
+		dsTable.setBounds(-3, -2, 0, 393);
+		panel_1.add(dsTable);
 						
-								ldsTable = new JTable(TableLds());
-								ldsTable.setBounds(-3, -2, 0, 393);
-								panel_1.add(ldsTable);
+		ldsTable = new JTable(TableLds());
+		ldsTable.setBounds(-3, -2, 0, 393);
+		panel_1.add(ldsTable);
+		
+		statsTable = new JTable(TableStatistics());
+		statsTable.setBounds(-3, -2, 0, 393);
+		panel_1.add(statsTable);
 								
-										JScrollPane scrollPane = new JScrollPane(dsTable);
-										scrollPane.setBounds(0, 22, 240, 370);
-										panel_1.add(scrollPane);
-										scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-										
-												JScrollPane scrollPane_1 = new JScrollPane(ldsTable);
-												scrollPane_1.setBounds(245, 22, 243, 373);
-												panel_1.add(scrollPane_1);
+		JScrollPane scrollPane = new JScrollPane(dsTable);
+		scrollPane.setBounds(0, 22, 240, 370);
+		panel_1.add(scrollPane);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+								
+		JScrollPane scrollPane_1 = new JScrollPane(ldsTable);
+		scrollPane_1.setBounds(245, 22, 243, 370);
+		panel_1.add(scrollPane_1);
+		
+		JScrollPane scrollPane_2 = new JScrollPane(statsTable);
+		scrollPane_2.setBounds(490, 22, 400, 370);
+		panel_1.add(scrollPane_2);
 												
-														JLabel lblDataPane = new JLabel("Data Pane");
-														lblDataPane.setBounds(0, 0, 129, 14);
-														panel_1.add(lblDataPane);
+		JLabel lblDataPane = new JLabel("Data Pane");
+		lblDataPane.setBounds(0, 0, 129, 14);
+		panel_1.add(lblDataPane);
 														
-																JLabel lblFrequentItemsetsPane = new JLabel("Frequent Itemsets Pane");
-																lblFrequentItemsetsPane.setBounds(251, 0, 156, 14);
-																panel_1.add(lblFrequentItemsetsPane);
+		JLabel lblFrequentItemsetsPane = new JLabel("Frequent Itemsets Pane");
+		lblFrequentItemsetsPane.setBounds(251, 0, 156, 14);
+		panel_1.add(lblFrequentItemsetsPane);
+		
+		JLabel lblStatisticsPane = new JLabel("Statistics Pane");
+		lblStatisticsPane.setBounds(503, 0, 183, 14);
+		panel_1.add(lblStatisticsPane);
+		
 		FileIO f = new FileIO();
 
 	}
@@ -387,6 +401,31 @@ public class Gui extends Applet {
 		};
 		return ldsDataModel;
 	}
+	
+	private TableModel TableStatistics() {
+
+		TableModel statisticsDataModel = new AbstractTableModel() {
+			public int getColumnCount() {
+				return 1;
+			}
+
+			public int getRowCount() {
+				if(statistics != null) {
+					return statistics.size();
+				}
+				else
+					return 0;
+			}
+
+			public Object getValueAt(int row, int col) {
+				if(statistics != null) {
+					return statistics.get(row);
+				} else
+					return null;
+			}
+		};
+		return statisticsDataModel;
+	}
 
 	private File getFileName() {
 		JFileChooser fc = new JFileChooser();
@@ -475,21 +514,27 @@ public void runAlgorithm(JDialog dialog2, double minimumSupportThreshold){
 			AlgoApriori Apriori = new AlgoApriori();
 			Apriori.runAlgorithm(dataSet, minsup, input, output);
 			frequentItemsets = Apriori.getFrequentItemsets();
+			statistics = Apriori.getStats();
 			ldsTable.setModel(TableLds());
+			statsTable.setModel(TableStatistics());
 		}
 		else if(algorithms[selectedAlgorithm].equals("FP-Growth")){
 			// run the FP-Growth algorithm
 			AlgoFPGrowth FPGrowth = new AlgoFPGrowth();
 			FPGrowth.runAlgorithm(dataSet,  minsup,  input,  output);
 			frequentItemsets = FPGrowth.getFrequentItemsets();
+			statistics = FPGrowth.getStats();
 			ldsTable.setModel(TableLds());
+			statsTable.setModel(TableStatistics());
 		}
 		else if(algorithms[selectedAlgorithm].equals("A-Close")){
 			// run the A-Close algorithm
 			AlgoAprioriClose AClose = new AlgoAprioriClose();
 			AClose.runAlgorithm(dataSet,  minsup,  input,  output);
 			frequentItemsets = AClose.getFrequentItemsets();
+			statistics = AClose.getStats();
 			ldsTable.setModel(TableLds());
+			statsTable.setModel(TableStatistics());
 		}
 		else if(algorithms[selectedAlgorithm].equals("Eclat")){
 			// run the Eclat algorithm
@@ -498,7 +543,20 @@ public void runAlgorithm(JDialog dialog2, double minimumSupportThreshold){
 			database.loadTransactionData(dataSet);
 			EClat.runAlgorithm(output, database, minsup);
 			frequentItemsets = EClat.getFrequentItemsets();
+			statistics = EClat.getStats();
 			ldsTable.setModel(TableLds());
+			statsTable.setModel(TableStatistics());
+		}
+		else if(algorithms[selectedAlgorithm].equals("CHARM")){
+			// run the CHARM algorithm
+			AlgoCharm CHARM = new AlgoCharm();
+			TransactionDatabase database = new TransactionDatabase();
+			database.loadTransactionData(dataSet);
+			CHARM.runAlgorithm(output, database, 20, minsup);
+			frequentItemsets = CHARM.getFrequentItemsets();
+			statistics = CHARM.getStats();
+			ldsTable.setModel(TableLds());
+			statsTable.setModel(TableStatistics());
 		}
 	}
 	catch(IOException e) {
