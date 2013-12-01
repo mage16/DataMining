@@ -1,20 +1,4 @@
 package edu.georgiasouthern.Datamining;
-/* This file is copyright (c) 2008-2013 Azadeh Soltani
-* 
-* This file is part of the SPMF DATA MINING SOFTWARE
-* (http://www.philippe-fournier-viger.com/spmf).
-* 
-* SPMF is free software: you can redistribute it and/or modify it under the
-* terms of the GNU General Public License as published by the Free Software
-* Foundation, either version 3 of the License, or (at your option) any later
-* version.
-* 
-* SPMF is distributed in the hope that it will be useful, but WITHOUT ANY
-* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-* A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-* You should have received a copy of the GNU General Public License along with
-* SPMF. If not, see <http://www.gnu.org/licenses/>.
-*/
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,13 +21,13 @@ import java.util.Map;
  */
 public class MISTree {
 	// List of items in the header table
-	List<Integer> headerList = null;
-	// List of pairs (item, node) of the header table
-	Map<Integer, MISNode> mapItemNodes = new HashMap<Integer, MISNode>();
-	
-//	// flag that indicate if the tree has more than one path
-//	boolean hasMoreThanOnePath = false;
-	
+		List<String> headerList = null;
+		
+		// List of pairs (item, frequency) of the header table
+		Map<String, MISNode> mapItemNodes = new HashMap<String, MISNode>();
+		
+		// flag that indicate if the tree has more than one path
+		boolean hasMoreThanOnePath = false;
 	// root of the tree
 	MISNode root = new MISNode(); // null node
 
@@ -63,7 +47,7 @@ public class MISTree {
 	public void addTransaction(List<String> transaction) {
 		MISNode currentNode = root;
 		// For each item in the transaction
-		for (Integer item : transaction) {
+		for (String item : transaction) {
 			// look if there is a node already in the FP-Tree
 			MISNode child = currentNode.getChildWithID(item);
 			if (child == null) {
@@ -111,10 +95,10 @@ public class MISTree {
 	 *            The prefix path
 	 * @param mapSupportBeta
 	 *            The frequencies of items in the prefixpaths
-	 * @param minMIS the minMIS parameter
+	 * @param relativeMinsupp the minMIS parameter
 	 */
 	void addPrefixPath(List<MISNode> prefixPath,
-			Map<Integer, Integer> mapSupportBeta, int minMIS) {
+			Map<String, Integer> mapSupportBeta, double relativeMinsupp) {
 		// the first element of the prefix path contains the path support
 		int pathCount = prefixPath.get(0).counter;
 
@@ -124,7 +108,7 @@ public class MISTree {
 		for (int i = prefixPath.size() - 1; i >= 1; i--) {
 			MISNode pathItem = prefixPath.get(i);
 			// if the item is not frequent we skip it
-			if (mapSupportBeta.get(pathItem.itemID) < minMIS) {
+			if (mapSupportBeta.get(pathItem.itemID) < relativeMinsupp) {
 				continue;
 			}
 
@@ -169,24 +153,35 @@ public class MISTree {
 	 * Method for creating the list of items in the header table, in descending
 	 * order of frequency.
 	 * 
-	 * @param mapSupport a Comparator of items
+	 * @param itemComparator a Comparator of items
 	 */
 	// az--------------------------
-	void createHeaderList(Map<String, Integer> mapSupport) {
-		headerList = new ArrayList<Integer>(mapItemNodes.keySet());
-		Collections.sort(headerList, mapSupport);
+	void createHeaderList(final Map<String, Integer> mapSupport) {
+		// create an array to store the header list with
+		// all the items stored in the map received as parameter
+		headerList =  new ArrayList<String>(mapItemNodes.keySet());
+		
+		// sort the header table by decreasing order of support
+		Collections.sort(headerList, new Comparator<String>(){
+			public int compare(String id1, String id2){
+				// compare the support
+				int compare = mapSupport.get(id2) - mapSupport.get(id1);
+				// if the same frequency, we check the lexical ordering!
+				if(compare ==0){ 
+					//return (id1 - id2);
+					return id1.compareTo(id2);
+				}
+				// otherwise we use the support
+				return compare;
+			}
+		});
 	}
-
 	/**
 	 * Delete an item from the header list
 	 * @param item the item
 	 * @param itemComparator a Comparator for comparing items
 	 */
-	void deleteFromHeaderList(int item,
-			Comparator<Integer> itemComparator) {
-		int index = Collections.binarySearch(headerList, item, itemComparator);
-		headerList.remove(index);
-	}
+	
 
 	/**
 	 * Perform MIS pruning with an item
@@ -264,7 +259,7 @@ public class MISTree {
 	public void print(MISNode TRoot) {
 		// char a[]={'z','a','b','c','d','e','f','g','h'};
 		// prefix print
-		if (TRoot.itemID != -1)
+		if (TRoot.itemID != "-1")
 			System.out.print(TRoot.itemID);
 		System.out.print(' ');
 		for (MISNode node : TRoot.childs) {

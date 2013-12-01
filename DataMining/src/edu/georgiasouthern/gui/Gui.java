@@ -193,7 +193,7 @@ public class Gui extends Applet {
 					dialog2.getContentPane().add(jb);
 					dialog2.setVisible(true);
 				}
-				else if(algorithmList.getSelectedIndex() == 4) {
+				/*else if(algorithmList.getSelectedIndex() == 4) {
 					dialog2.getContentPane().add(new JLabel("Algorithm not implemented yet."));
 					JButton jb = new JButton("OK");
 					jb.addActionListener(new ActionListener() {
@@ -206,7 +206,8 @@ public class Gui extends Applet {
 				});
 					dialog2.getContentPane().add(jb);
 					dialog2.setVisible(true);
-				}else{
+				}*/
+				else{
 					dialog2.getContentPane().add(new JLabel("Please Enter the minimum support threshold."));					
 					// 
 					JPanel pnlExpNei = new JPanel(new FlowLayout());
