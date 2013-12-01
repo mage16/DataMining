@@ -548,13 +548,24 @@ public void runAlgorithm(JDialog dialog2, double minimumSupportThreshold){
 			statsTable.setModel(TableStatistics());
 		}
 		else if(algorithms[selectedAlgorithm].equals("CHARM")){
-			// run the CHARM algorithm
-			AlgoCharm CHARM = new AlgoCharm();
+			//run the CHARM algorithm
+		AlgoCharm CHARM = new AlgoCharm();
 			TransactionDatabase database = new TransactionDatabase();
 			database.loadTransactionData(dataSet);
 			CHARM.runAlgorithm(output, database, 20, minsup);
 			frequentItemsets = CHARM.getFrequentItemsets();
 			statistics = CHARM.getStats();
+			ldsTable.setModel(TableLds());
+			statsTable.setModel(TableStatistics());
+		}
+		else if(algorithms[selectedAlgorithm].equals("Closet+")){
+			//run the CHARM algorithm
+			AlgoCFPGrowth_saveToFile AlgoCFPGrowth = new AlgoCFPGrowth_saveToFile();
+			TransactionDatabase database = new TransactionDatabase();
+			database.loadTransactionData(dataSet);
+			AlgoCFPGrowth.runAlgorithm(dataSet,  minsup,  input,  output);
+			frequentItemsets = AlgoCFPGrowth.getFrequentItemsets();
+			statistics = AlgoCFPGrowth.getStats();
 			ldsTable.setModel(TableLds());
 			statsTable.setModel(TableStatistics());
 		}
